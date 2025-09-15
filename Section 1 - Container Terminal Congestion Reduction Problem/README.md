@@ -82,10 +82,13 @@ Thanks to the special structure of the LP, a simple greedy algorithm can produce
 1. **Sort blocks** by $a_i$ (increasing order).  
 2. **Allocate containers** in order:
    - For block $1$:  
+
      $$
      x_1 = \min \Big\{ N, \max\{0, A \times F - a_1\} \Big\}
      $$
+
    - For block $i \geq 2$:  
+   
      $$
      x_i = \min \Big\{ \max\{0, A \times F - a_i\}, N - \sum_{r=1}^{i-1} x_r \Big\}
      $$
