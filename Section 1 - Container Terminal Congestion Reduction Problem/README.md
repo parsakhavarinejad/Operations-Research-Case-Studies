@@ -10,9 +10,9 @@ During field observations at the HIT container terminal, it was noted that:
 
 - **Occupancy (fill-ratio) of blocks** varied significantly:
 
-  $$
-  \text{Fill-ratio of block } i = \frac{\text{Number of containers in block } i}{\text{Number of storage positions in block } i}
-  $$
+$$
+\text{Fill-ratio of block } i = \frac{\text{Number of containers in block } i}{\text{Number of storage positions in block } i}
+$$
 
 - Blocks with **higher fill-ratios** experienced much heavier truck traffic, leading to **road congestion** inside the terminal.  
 - Idea: **Equalize fill-ratios across blocks** at the **end of each planning period** (e.g., 4 hours).  
@@ -60,7 +60,7 @@ $$
 **Constraints:**  
 
 $$
-a_i + x_i - (u_i^+ - u_i^-) = A \times F \quad \forall i
+a_i + x_i - (u_i^+ - u_i^-) = A \times F, \quad \forall i
 $$  
 
 $$
@@ -68,7 +68,7 @@ $$
 $$  
 
 $$
-x_i, u_i^+, u_i^- \geq 0
+x_i, u_i^+, u_i^- \ge 0
 $$
 
 This is a **small LP** (variables ≈ number of blocks, typically ~100), making it computationally efficient.
@@ -79,19 +79,20 @@ This is a **small LP** (variables ≈ number of blocks, typically ~100), making 
 
 Thanks to the special structure of the LP, a simple greedy algorithm can produce the **optimal solution**:
 
-1. **Sort blocks** by $a_i$ (increasing order).  
+1. **Sort blocks** by $a_i$ (in increasing order).  
 2. **Allocate containers** in order:
-   - For block $1$:  
 
-     $$
-     x_1 = \min \Big\{ N, \max\{0, A \times F - a_1\} \Big\}
-     $$
+   - For block $1$:
 
-   - For block $i \geq 2$:  
-   
-     $$
-     x_i = \min \Big\{ \max\{0, A \times F - a_i\}, N - \sum_{r=1}^{i-1} x_r \Big\}
-     $$
+   $$
+   x_1 = \min \Big\{ N, \max\{0, A \times F - a_1\} \Big\}
+   $$
+
+   - For block $i \ge 2$:
+
+   $$
+   x_i = \min \Big\{ \max\{0, A \times F - a_i\}, N - \sum_{r=1}^{i-1} x_r \Big\}
+   $$
 
 This **greedy allocation** ensures fill-levels approach uniformity while respecting capacity and total arrivals.
 
@@ -107,18 +108,17 @@ This case study will provide two approaches for solving the problem:
 
 2. **Combinatorial Algorithm**  
    - Implement the greedy allocation scheme in Python.  
-   - Compare runtime and results to Pyomo.  
+   - Compare runtime and results to Pyomo.
 
 ---
-
 
 ## ✅ Expected Outcomes
 
 - **Balanced fill-ratios** across blocks.  
 - **Reduced truck congestion** in terminal roads.  
-- Comparison of **LP vs. Combinatorial approach**:
+- Comparison of **LP vs. Combinatorial approach**:  
   - Pyomo: more general, flexible, but solver-dependent.  
-  - Combinatorial: lightweight, fast, and exact for this problem structure.  
+  - Combinatorial: lightweight, fast, and exact for this problem structure.
 
 ---
 
