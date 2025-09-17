@@ -80,19 +80,17 @@ This is a **small LP** (variables ≈ number of blocks, typically ~100), making 
 Thanks to the special structure of the LP, a simple greedy algorithm can produce the **optimal solution**:
 
 1. **Sort blocks** by $a_i$ (in increasing order).  
-2. **Allocate containers** in order:
+- For block $1$:
 
-   - For block $1$:
+$$
+x_1 = \min\big(N, \max(0, A F - a_1)\big)
+$$
 
-   $$
-   x_1 = \min \Big\{ N, \max\{0, A \times F - a_1\} \Big\}
-   $$
+- For block $i \ge 2$:
 
-   - For block $i \ge 2$:
-
-   $$
-   x_i = \min \Big\{ \max\{0, A \times F - a_i\}, N - \sum_{r=1}^{i-1} x_r \Big\}
-   $$
+$$
+x_i = \min\Big( \max(0, A F - a_i), \; N - \sum_{r=1}^{i-1} x_r \Big)
+$$
 
 This **greedy allocation** ensures fill-levels approach uniformity while respecting capacity and total arrivals.
 
