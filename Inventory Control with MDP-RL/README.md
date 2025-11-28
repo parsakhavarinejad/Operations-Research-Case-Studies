@@ -1,216 +1,173 @@
 # 📦 Inventory Control MDP – Full Project Overview
 
-This project provides a **complete, end-to-end implementation** of a classical  
-**single-product inventory control problem** using **Markov Decision Processes (MDPs)**.
+This project provides a complete, end-to-end implementation of a classical  
+single-product inventory control problem using Markov Decision Processes (MDPs).
 
 The repository (or notebook) includes:
 
-- A fully functional **simulation environment** (`InventoryEnv`)
-- A **heuristic base-stock policy** (order-up-to level policy)
+- A fully functional simulation environment (`InventoryEnv`)
+- A heuristic base-stock (order-up-to) policy
 - Simulation-based policy evaluation
-- Exact **tabular MDP modeling** (transition probabilities + expected rewards)
-- **Value Iteration** to compute the *provably optimal* ordering policy
+- Exact tabular MDP modeling (transition probabilities + expected rewards)
+- Value Iteration to compute the optimal ordering policy
 - Visualizations and comparisons between heuristic and optimal policies
 
-This README explains the theory, math, and code structure so you can learn MDPs deeply.
+This README explains the theory, math, and code structure in a GitHub-safe way.
 
 ---
 
 # 🧠 1. Problem Summary
 
-You manage the daily operations of a warehouse storing **one type of product**.
+We manage the daily operations of a warehouse storing one type of product.
 
-Every day:
+Each day:
 
-1. You observe the **on-hand inventory**  
-2. You choose an **order quantity**  
-3. The order **arrives immediately** (no lead time)  
-4. Customer **demand occurs** (Poisson)  
-5. You sell what you can; unmet demand is lost  
+1. Observe the on-hand inventory  
+2. Choose an order quantity  
+3. Ordered units arrive immediately  
+4. Customer demand occurs (Poisson-distributed)  
+5. Sell up to available inventory; unmet demand is lost  
 6. Holding costs, ordering costs, and stockout penalties apply  
 
-Goal:
-
-**Maximize long-run expected profit**  
-(or equivalently minimize long-run expected total cost)
+Goal: Maximize long-run expected profit (or minimize long-run expected cost)
 
 ---
 
 # 🔧 2. MDP Formulation
 
-## 👉 State
-$$
-s \in \{0,1,2,\dots,S_{\max}\}
-$$
+## State  
+Inventory level at the beginning of a day:  
+`state = 0, 1, 2, …, S_max`
 
-## 👉 Action
-$$
-a \in \{0,1,2,\dots,A_{\max}\}
-$$
+## Action  
+Order quantity:  
+`action = 0, 1, 2, …, A_max`
 
-## 👉 Demand
-$$
-D \sim \text{Poisson}(\lambda)
-$$
+## Stochastic Demand  
+Demand follows a Poisson distribution with mean lambda.
 
-## 👉 Transition Dynamics
+## State Transition
 
-Inventory before demand:
-$$
-\text{inv\_pre} = \min(S_{\max},\, s + a)
-$$
+Given:
+- `s` = current inventory  
+- `a` = order quantity  
+- `D` = random demand  
 
-Units sold:
-$$
-\text{units\_sold} = \min(\text{inv\_pre}, D)
-$$
+We compute:
 
-Next state:
-$$
-s' = \text{inv\_pre} - \text{units\_sold}
-$$
+1. `inv_pre = min(S_max, s + a)`  
+2. `units_sold = min(inv_pre, D)`  
+3. `next_state = inv_pre - units_sold`
 
-## 👉 Reward Function
+## Reward (profit)
 
-Revenue:
-$$
-\text{revenue} = p_s \cdot \text{units\_sold}
-$$
+Components:
 
-Ordering cost:
-$$
-\text{order\_cost}=
-\begin{cases}
-K + c_p a & a > 0 \\
-0 & a = 0
-\end{cases}
-$$
+- `revenue        = selling_price * units_sold`
+- `order_cost     = fixed_cost (if a > 0) + purchase_cost * a`
+- `holding_cost   = holding_cost_per_unit * next_state`
+- `stockout_cost  = penalty_per_unit * (D - units_sold)`
 
-Holding cost:
-$$
-h \cdot s'
-$$
-
-Stockout penalty:
-$$
-p_b \cdot (D - \text{units\_sold})
-$$
-
-Final reward:
-$$
-r(s,a,D)=
-\text{revenue}
-- \text{order\_cost}
-- \text{holding\_cost}
-- \text{stockout\_cost}
-$$
+Daily reward:
+`reward = revenue - order_cost - holding_cost - stockout_cost`
 
 ---
 
 # 🧩 3. Project Components
 
-## ✔️ 3.1 Simulation Environment
+## ✔️ 3.1 Simulation Environment (`InventoryEnv`)
 
-A Gym-like environment that supports:
-
+Implements:
 - `reset()`
 - `step(action)`
 - `render()`
-- Poisson demand sampling
+- Poisson demand
+- Inventory updates
 - Reward computation
 
-## ✔️ 3.2 Heuristic Base-Stock Policy
+## ✔️ 3.2 Heuristic Policy: Base-Stock (Order-Up-To)
 
-$$
-a(s) = \max(0, S - s)
-$$
+`action(s) = max(0, S - s)`
 
-We evaluate many values of \( S \) using Monte-Carlo simulation.
+We evaluate this policy via simulation over many episodes.
 
-## ✔️ 3.3 Tabular MDP Model (P, R)
+## ✔️ 3.3 Tabular MDP Model
 
-Transition probabilities:
-$$
-P(s'|s,a)=\sum_{d: s' = f(s,a,d)} P(D=d)
-$$
+For every `(state, action)` pair we compute:
 
-Expected rewards:
-$$
-R(s,a)=\sum_d P(D=d)\, r(s,a,d)
-$$
+- Transition probabilities `P[state, action, next_state]`
+- Expected rewards `R[state, action]`
+
+This is done by summing over all possible demand values.
 
 ## ✔️ 3.4 Value Iteration
 
-Bellman optimality update:
-$$
-V_{k+1}(s)=\max_a \left[
-R(s,a) + \gamma
-\sum_{s'} P(s'|s,a)V_k(s')
-\right]
-$$
+Uses the Bellman optimality update:
 
-Optimal policy:
-$$
-\pi^*(s)=\arg\max_a \left[
-R(s,a)+\gamma\sum_{s'}P(s'|s,a)V^*(s')
-\right]
-$$
+`V_new(s) = max over a [ R(s,a) + gamma * Σ P(s'|s,a) * V(s') ]`
+
+After convergence:
+`policy*(s) = argmax over a [ R(s,a) + gamma * Σ P(s'|s,a) * V(s') ]`
+
+This yields the exact optimal inventory policy.
 
 ---
 
 # 📈 4. Visualizations
 
-Plots include:
+We generate plots for:
 
-- Average reward vs order-up-to level \( S \)
-- Optimal policy \( \pi^*(s) \)
+- Average reward vs order-up-to level S
+- Optimal policy returned by value iteration
 
-Typical behavior:
+Expected pattern:
 
-- Low \( S \) → too many stockouts  
-- High \( S \) → too much holding cost  
-- Middle \( S \) → best  
-- Value iteration policy looks like a **base-stock** policy  
+- Small S → too many stockouts → low reward  
+- Large S → too much holding cost → low reward  
+- Best S is somewhere in the middle  
+- Optimal DP policy resembles a base-stock (order-up-to) structure  
 
 ---
 
-# 🏆 5. Key Outcomes
+# 🏆 5. Key Learning Outcomes
 
-You will learn:
+By completing this project you will:
 
-- How to model real operations problems as MDPs  
-- How to write a custom simulation environment  
-- How to build \(P(s'|s,a)\) and \(R(s,a)\)  
-- How to implement **Value Iteration**  
-- How to extract the optimal policy  
-- How to compare RL / DP solutions to industry heuristics  
+- Understand how inventory problems map to MDPs  
+- Build a Gym-like environment from scratch  
+- Construct P(s'|s,a) and R(s,a) tables  
+- Implement Value Iteration  
+- Derive the optimal inventory policy  
+- Compare heuristic policies to optimal DP policies  
+- Gain intuition about DP, RL, and operations research  
 
-This builds foundations in:
+Useful for:
 
 - Reinforcement Learning  
 - Operations Research  
-- Stochastic Control  
 - Supply Chain Optimization  
+- Stochastic Control  
+- Dynamic Programming  
 
 ---
 
-# 🚀 6. Extensions (Optional)
+# 🚀 6. Extensions
 
-You can extend this project with:
+You can extend this project by adding:
 
 - Lead times  
-- Backorders  
-- Multi-item inventory  
+- Backorders (instead of lost sales)  
+- Multiple products  
+- Approximate dynamic programming  
 - Q-learning / SARSA  
 - Deep RL (DQN, PPO, SAC)  
 - Continuous state MDPs  
-- Approximate DP  
 
 ---
 
 # 🙌 7. Credits
 
-This project is designed as a **teaching notebook** to build  
-strong intuition about MDPs in real-world inventory control.
+This project is designed as a learning notebook to help you build strong intuition  
+about MDPs in the context of real industrial inventory control.
 
 Feel free to adapt, extend, and experiment!
