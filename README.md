@@ -17,7 +17,10 @@ Each case study is presented in its own folder with:
    – Equalizing storage block fill-ratios to reduce truck congestion.  
 
 2. **Inventory Optimization and Control Using Markov Decision Process**  
-   – Learning MDP in Reinforcement Learning using a case study in inventory control
+   – Implementing MDP in Reinforcement Learning using a case study in inventory control
+
+3. **Marketing Optimization via RL - SARSA and Expected SARSA**
+   – An RL-based control system implementing SARSA and Expected SARSA to derive profit-maximizing marketing policies in a stochastic environment.
 ---
 
 ## ✅ Goals of the Repository
