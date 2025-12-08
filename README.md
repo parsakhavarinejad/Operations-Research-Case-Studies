@@ -25,8 +25,8 @@ Each case study is presented in its own folder with:
 
 ## ✅ Goals of the Repository
 
-- Provide **hands-on Python implementations** of classic OR case studies.  
-- Compare **exact optimization (Pyomo)** with **custom combinatorial/heuristic approaches**.  
+- Provide **hands-on Python implementations** of classic and modern OR case studies.  
+- Contains several real-world problems with the various ML, OR, and RL methods to tackle them.
 - Serve as a **learning resource** for students, researchers, and practitioners in **Industrial Engineering, Operations Research, and Data Science**.  
 
 ---
